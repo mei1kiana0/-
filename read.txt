@@ -1,0 +1,58 @@
+1：电机控制
+
+//轮子ID	F:front R:rear
+#define LF_MOTOR_ID 1   左前
+#define LR_MOTOR_ID 2	左后
+#define RF_MOTOR_ID 3	右前
+#define RR_MOTOR_ID 4	右后  //相对于机械臂
+
+//速度控制
+void SetCarSpeed(float vx, float vy, float vSpin)
+记得使用delay函数。由于delay函数的影响，在设定速度后，以delay(980)为电机实际转1s
+
+
+2.舵机控制
+使用pca9685模块控制舵机，需要外接电源
+
+//舵机ID
+#define JAW 0				//夹爪
+#define ROTATE 4		//机械臂旋转
+#define UPPER 8			//夹爪上下位置
+#define TRAY 12 		//物料盘旋转
+
+//相关函数 
+	void Gnd_to_Tray(void);
+作用为将夹爪从物料台抓取放置物料盘，并将机械臂回正
+void Gnd_to_Tray(void)
+{
+	PCA9685_SetServoAngle(UPPER,30); //假设此时夹爪与物料在同一高度
+	HAL_Delay(1000);
+	PCA9685_SetServoAngle(JAW,0); //夹爪抓住物料
+	HAL_Delay(1000);
+	PCA9685_SetServoAngle(UPPER,110); //假设此时夹爪与物料在同一高度
+	HAL_Delay(500);
+	PCA9685_SetServoAngle(ROTATE,122); //角度控制使夹爪处于物料盘上方
+	HAL_Delay(1500);
+	//PCA9685_SetServoAngle(UPPER,90); //适度降低夹爪高度
+	//HAL_Delay(500);
+	PCA9685_SetServoAngle(JAW,30); //夹爪释放物料
+	HAL_Delay(500);
+	/*回正*/
+	PCA9685_SetServoAngle(ROTATE,30);
+}
+	void Tray_test(void)
+测试物料盘位置	
+void Tray_test(void)
+{
+	PCA9685_SetServoAngle(TRAY,-34);
+	HAL_Delay(1500);
+	PCA9685_SetServoAngle(TRAY,36);
+	HAL_Delay(1500);
+	PCA9685_SetServoAngle(TRAY,110);
+	HAL_Delay(1500);
+}
+确定物料盘合适的位置
+
+
+3.openmv
+待开发
