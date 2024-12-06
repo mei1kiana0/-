@@ -1,4 +1,4 @@
-1：电机控制
+：电机控制
 
 //轮子ID	F:front R:rear
 #define LF_MOTOR_ID 1   左前
