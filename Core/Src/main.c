@@ -90,7 +90,7 @@ uint8_t locateArm='A';			//机械臂定位
 uint8_t locate_stuff='S';		//码垛前车体定位
 uint8_t locateArm_stuff='s';	//码垛前机械臂定位
 uint8_t catch_char='c';			//识别转盘物料
-int a = 1;
+int a = 0; //用于循环控制定位
 uint8_t my_data[7] = "123+321";
 uint8_t colorOrder[2][3]={{1,2,3},{3,2,1}};	//抓取顺序，由openMV获得，第一维为轮数
 
@@ -154,9 +154,12 @@ int main(void)
   MX_USART3_UART_Init();
   MX_UART5_Init();
   /* USER CODE BEGIN 2 */
-	//PCA9685_Init();		//必须上电接上pca9685模块，否则会导致后续代码无法运行
+	//PCA9685_Init();		
 	//HAL_Delay(200);
-	SetCarSpeed(-40,40,0);
+	
+	//必须上电接上pca9685模块，否则会导致后续代码无法运行
+	
+	/*SetCarSpeed(-40,40,0);
 	HAL_Delay(195);
 	Motor_stop();
 	SetCarSpeed(0,42,0);
@@ -164,7 +167,10 @@ int main(void)
 	Motor_stop();
 	SetCarSpeed(0,40,0);
 	HAL_Delay(1995);
-	Motor_stop();
+	Motor_stop();*/
+	
+	//此处为模拟车行驶到物料盘前
+	
 	HAL_UART_Transmit_IT(&huart3,&qr,sizeof(qr));
 	HAL_Delay(5);																//发送命令让openmv扫描二维码并接收二维码信息
 	HAL_UART_Receive_IT(&huart3, &rx_byte, 1);  // 开启中断接收
@@ -178,10 +184,7 @@ int main(void)
 	HAL_Delay(3500);//设定995ms为1s
 	Motor_stop();*/
 		
-	//SetCarSpeed(-40,0,0);
-	//HAL_Delay(200);
-	//Motor_stop();
-	//HAL_Delay(1000);
+	
 	
 	//Motor_stop();
 	//HAL_Delay(2);
@@ -201,9 +204,37 @@ int main(void)
 
 
 
-
-
-
+HAL_Delay(1500);//让f407充分接收到数据
+for(a=0;a<3;a++)
+{
+	if(center_x!=0)
+{
+		if(150<=center_x&&center_x<=170&&100<=center_y&&center_y<=130)
+		{break;}
+		else if(130<=center_x&&center_x<=190&&90<=center_y&&center_y<=150)
+		{
+			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
+			HAL_Delay(245);
+			Motor_stop();
+			HAL_Delay(500);
+		}
+		else if(115<=center_x&&center_x<=205&&75<=center_y&&center_y<=165)
+	{
+		SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
+		HAL_Delay(295);
+		Motor_stop();
+		HAL_Delay(500);
+	}
+		else
+	{
+	SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
+	HAL_Delay(385);
+	Motor_stop();
+	HAL_Delay(500);
+	}
+}
+}
+a=0;
 
   /* USER CODE END 2 */
 
@@ -369,6 +400,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
             buffer_index = 0;        // 重置缓冲区索引
 
             // 解析接收到的数据
+						
             char *token = strtok(rx_buffer, ",");  // 按逗号分隔
             if (token != NULL) {
                 center_x = atoi(token);           // 更新中心 x 坐标
