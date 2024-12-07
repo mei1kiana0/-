@@ -27,7 +27,7 @@
 #define LEFT 1
 #define MID 2
 #define RIGHT 3
-/**/
+
 void Gnd_to_Tray(void);
 void Tray_test(void);
 #endif
