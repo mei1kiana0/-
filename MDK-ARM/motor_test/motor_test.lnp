@@ -29,6 +29,7 @@
 "motor_test\tools.o"
 "motor_test\pca9685.o"
 "motor_test\servo.o"
+"motor_test\led.o"
 --strict --scatter "motor_test\motor_test.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
