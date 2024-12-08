@@ -61,11 +61,15 @@ uint8_t data11[5] = {0x02,0xFE,0x98,0x01,0x6B}; //立即停止
 uint8_t data12[5] = {0x03,0xFE,0x98,0x01,0x6B}; //立即停止
 uint8_t data13[5] = {0x04,0xFE,0x98,0x01,0x6B}; //立即停止	同步控制
 //速度控制 电机立即停止
-uint8_t data14[] = {0x01,0xFE,0x98,0x00,0x6B};
-uint8_t data15[] = {0x02,0xFE,0x98,0x00,0x6B};
-uint8_t data16[] = {0x03,0xFE,0x98,0x00,0x6B};
-uint8_t data17[] = {0x04,0xFE,0x98,0x00,0x6B};
+uint8_t data14[] = {0x01,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
+uint8_t data15[] = {0x02,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
+uint8_t data16[] = {0x03,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
+uint8_t data17[] = {0x04,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};	//右转
 
+uint8_t data18[] = {0x01,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
+uint8_t data19[] = {0x02,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
+uint8_t data20[] = {0x03,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
+uint8_t data21[] = {0x04,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};	//左转
 const double pi =3.1416;
 const double  rx =23;	//两个麦轮横向距离
 const double  ry =17; //两个麦轮纵向距离
@@ -111,7 +115,9 @@ volatile int center_y = 0;  // 全局变量表示中心 y 坐标
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void Motor_stop(void);
+void Car_turn(int i);// i=0为右转
 void ScanQR(void);
+void Locate_1(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -127,6 +133,11 @@ void ScanQR(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	
+	
+	//目前设定流程为从启动区出发到物料盘前并识别物料//
+	
+	
 	
 	
   /* USER CODE END 1 */
@@ -159,16 +170,23 @@ int main(void)
 	
 	//必须上电接上pca9685模块，否则会导致后续代码无法运行
 	
-	/*SetCarSpeed(-40,40,0);
+	SetCarSpeed(-40,40,0);
 	HAL_Delay(195);
-	Motor_stop();
+	//Motor_stop(); 可能会出问题
 	SetCarSpeed(0,42,0);
 	HAL_Delay(995);
-	Motor_stop();
+	Motor_stop();//在这里扫描二维码
+	ScanQR();
+	HAL_Delay(995);
+	//判断是否接收到了数据，否则一直不动
+	/*HAL_UART_Transmit_IT(&huart3,&qr,sizeof(qr));
+	HAL_Delay(5);																//发送命令让openmv扫描二维码并接收二维码信息
+	HAL_UART_Receive_IT(&huart3, &rx_byte, 1);  // 开启中断接收*/
+	
 	SetCarSpeed(0,40,0);
 	HAL_Delay(1995);
-	Motor_stop();*/
-	
+	Motor_stop();
+	Car_turn(0);
 	//此处为模拟车行驶到物料盘前
 	
 	HAL_UART_Transmit_IT(&huart3,&qr,sizeof(qr));
@@ -184,27 +202,10 @@ int main(void)
 	HAL_Delay(3500);//设定995ms为1s
 	Motor_stop();*/
 		
-	
-	
-	//Motor_stop();
-	//HAL_Delay(2);
-	//HAL_UART_Transmit_IT(&huart1,&qr,sizeof(qr));
-	//HAL_Delay(2000);
-	//HAL_UART_Receive_IT(&huart1, camChar, 7);
-	//SetCarSpeed(0,42,0);
-	//HAL_Delay(2000);
-	//Motor_stop();
-
-
-//HAL_UART_Transmit_IT(&huart1,data2,sizeof(data2));
-//SetCarSpeed(0,31.416,0);
-//HAL_Delay(985); //微调设定980ms为1s
-//Motor_stop();
-//HAL_Delay(1000);
 
 
 
-HAL_Delay(1500);//让f407充分接收到数据
+while(center_x == 0);
 for(a=0;a<3;a++)
 {
 	if(center_x!=0)
@@ -234,7 +235,8 @@ for(a=0;a<3;a++)
 	}
 }
 }
-a=0;
+//Locate_1();
+
 
   /* USER CODE END 2 */
 
@@ -318,6 +320,73 @@ void Motor_stop(void)
 	HAL_Delay(2);
 }
 
+void Car_turn(int i)
+{
+	if(i==0)
+	{HAL_UART_Transmit_IT(&huart1,data14,sizeof(data14));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart1,data15,sizeof(data15));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart1,data16,sizeof(data16));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart1,data17,sizeof(data17));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart1,tdata,sizeof(tdata));
+	HAL_Delay(2);}
+	
+	else
+	{
+		
+	HAL_UART_Transmit_IT(&huart1,data18,sizeof(data18));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart1,data19,sizeof(data19));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart1,data20,sizeof(data20));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart1,data21,sizeof(data21));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart1,tdata,sizeof(tdata));
+	HAL_Delay(2);
+	
+	}
+
+	//SetCarSpeed(0,0,31.416/40.0); 也许能用，预期效果原地右转
+}
+
+void Locate_1(void)
+{
+	for(a=0;a<3;a++)
+{
+		if(center_x!=0)
+	{
+			if(150<=center_x&&center_x<=170&&100<=center_y&&center_y<=130)
+			{break;}
+			else if(130<=center_x&&center_x<=190&&90<=center_y&&center_y<=150)
+		{
+			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
+			HAL_Delay(245);
+			Motor_stop();
+			HAL_Delay(500);
+		}
+			else if(115<=center_x&&center_x<=205&&75<=center_y&&center_y<=165)
+		{
+			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
+			HAL_Delay(295);
+			Motor_stop();
+			HAL_Delay(500);
+		}
+			else
+		{
+			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
+			HAL_Delay(385);
+			Motor_stop();
+			HAL_Delay(500);
+		}
+	}
+}
+a=0;
+}
+
 /************************************
 * ScanQR：从openMV读取原料位置
 * 储存为colorOrder
@@ -325,10 +394,11 @@ void Motor_stop(void)
 void ScanQR(void)
 {
 	//向OpenMV发送扫二维码指令
-	HAL_UART_Transmit(&huart5,(uint8_t *)&qr,sizeof(qr),0xffff);
-	//HAL_UART_Receive(&huart5,camChar,7*sizeof(uint8_t),0xffff);
-	HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_5);
-	HAL_Delay(500);
+	
+	HAL_UART_Transmit_IT(&huart5,&qr,sizeof(qr));
+	HAL_Delay(10);
+	HAL_UART_Receive_IT(&huart5,camChar,7*sizeof(uint8_t));
+
 	//HAL_UART_Receive_IT(&huart3,(uint8_t *)&aRxBuffer,1);
 	for (int i=0;i<3;i++)
 	{
@@ -347,11 +417,36 @@ void ScanQR(void)
 	//HAL_UART_Receive_IT(&huart4,(uint8_t *)&aRxBuffer, 1);*/
 }
 
-/************************************
-* Locate：车体闭环定位校准
-* OpenMV识别圆心并发送圆心坐标
-* 接收包格式：{FF,AA,x,x,y,a,AA,EE}
-************************************/
+
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART3) {  // 确保是 USART3 的中断
+        static uint8_t rx_byte;       // 单字节接收变量
+
+        // 接收数据并放入缓冲区
+        HAL_UART_Receive_IT(&huart3, &rx_byte, 1);  // 再次启动中断接收
+        if (rx_byte == '\n') {        // 检测到结束符
+            rx_buffer[buffer_index] = '\0';  // 添加字符串结束符
+            buffer_index = 0;        // 重置缓冲区索引
+
+            // 解析接收到的数据
+						
+            char *token = strtok(rx_buffer, ",");  // 按逗号分隔
+            if (token != NULL) {
+                center_x = atoi(token);           // 更新中心 x 坐标
+                token = strtok(NULL, ",");
+                if (token != NULL) {
+                    center_y = atoi(token);       // 更新中心 y 坐标
+                }
+            }
+        } else {
+            // 防止缓冲区溢出
+            if (buffer_index < BUFFER_SIZE - 1) {
+                rx_buffer[buffer_index++] = rx_byte;
+            }
+        }
+    }
+}
 /* USER CODE END 4 */
 
 /**
@@ -389,34 +484,7 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart->Instance == USART3) {  // 确保是 USART3 的中断
-        static uint8_t rx_byte;       // 单字节接收变量
 
-        // 接收数据并放入缓冲区
-        HAL_UART_Receive_IT(&huart3, &rx_byte, 1);  // 再次启动中断接收
-        if (rx_byte == '\n') {        // 检测到结束符
-            rx_buffer[buffer_index] = '\0';  // 添加字符串结束符
-            buffer_index = 0;        // 重置缓冲区索引
-
-            // 解析接收到的数据
-						
-            char *token = strtok(rx_buffer, ",");  // 按逗号分隔
-            if (token != NULL) {
-                center_x = atoi(token);           // 更新中心 x 坐标
-                token = strtok(NULL, ",");
-                if (token != NULL) {
-                    center_y = atoi(token);       // 更新中心 y 坐标
-                }
-            }
-        } else {
-            // 防止缓冲区溢出
-            if (buffer_index < BUFFER_SIZE - 1) {
-                rx_buffer[buffer_index++] = rx_byte;
-            }
-        }
-    }
-}
 
 #ifdef  USE_FULL_ASSERT
 /**
