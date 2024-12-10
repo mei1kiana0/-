@@ -43,4 +43,4 @@ motor_test\main.o: E:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
 motor_test\main.o: ../PCA9685/pca9685.h
 motor_test\main.o: ../Servo/servo.h
 motor_test\main.o: E:\keil5\ARM\ARMCC\Bin\..\include\string.h
-motor_test\main.o: ../Led/led.h
+motor_test\main.o: ..\Led\oled.h

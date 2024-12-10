@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Tools;../PCA9685;../Servo;../Led</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Tools;../PCA9685;../Servo;..\Led</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -784,22 +784,22 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Led</GroupName>
+          <GroupName>oled</GroupName>
           <Files>
             <File>
-              <FileName>led.c</FileName>
+              <FileName>oled.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Led\led.c</FilePath>
+              <FilePath>..\Led\oled.c</FilePath>
             </File>
             <File>
-              <FileName>led.h</FileName>
+              <FileName>oled.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\Led\led.h</FilePath>
+              <FilePath>..\Led\oled.h</FilePath>
             </File>
             <File>
-              <FileName>fonts.h</FileName>
+              <FileName>oledfont.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\Led\fonts.h</FilePath>
+              <FilePath>..\Led\oledfont.h</FilePath>
             </File>
           </Files>
         </Group>

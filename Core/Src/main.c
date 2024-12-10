@@ -28,7 +28,7 @@
 #include "pca9685.h"
 #include "servo.h"
 #include "string.h"
-#include "led.h"
+#include "oled.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -151,17 +151,16 @@ extern uint8_t camByte;
 extern uint8_t camChar[7];
 extern uint8_t tdata[4];	//多机同步
 //OpenMV接收指令
-uint8_t OPSreset[4]={'A','C','T','0'};	//OPS置零
+
 uint8_t qr='Q';					//识别二维码
-uint8_t get='G';				//未使用
+
 uint8_t locate='L';				//地面定位
-uint8_t locateGet='l';			//转盘处定位
+
 uint8_t locateArm='A';			//机械臂定位
 uint8_t locate_stuff='S';		//码垛前车体定位
-uint8_t locateArm_stuff='s';	//码垛前机械臂定位
-uint8_t catch_char='c';			//识别转盘物料
+
 int a = 0; //用于循环控制定位
-uint8_t my_data[7] = "123+321";
+uint8_t my_data[8] = "123+321\0";
 uint8_t colorOrder[2][3]={{1,2,3},{3,2,1}};	//抓取顺序，由openMV获得，第一维为轮数
 
 //openmv测试
@@ -172,6 +171,8 @@ uint8_t buffer_index = 0;     // 当前缓冲区索引
 uint8_t data_ready = 0;       // 数据接收完成标志
 volatile int center_x = 0;  // 全局变量表示中心 x 坐标
 volatile int center_y = 0;  // 全局变量表示中心 y 坐标
+
+
 /**/
 
 
@@ -232,46 +233,28 @@ int main(void)
   MX_UART5_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-	//PCA9685_Init();		
-	//HAL_Delay(200);
+	PCA9685_Init();		
+	HAL_Delay(200);
 	
 	//必须上电接上pca9685模块，否则会导致后续代码无法运行
 	
-	SetCarSpeed(-40,40,0);
-	HAL_Delay(195);
-	//Motor_stop(); 可能会出问题
-	SetCarSpeed(0,42,0);
-	HAL_Delay(995);
-	Motor_stop();//在这里扫描二维码
-	ScanQR();
-	HAL_Delay(995);
+	
 	//判断是否接收到了数据，否则一直不动
-	/*HAL_UART_Transmit_IT(&huart3,&qr,sizeof(qr));
-	HAL_Delay(5);																//发送命令让openmv扫描二维码并接收二维码信息
-	HAL_UART_Receive_IT(&huart3, &rx_byte, 1);  // 开启中断接收*/
 	
-	
-	OLED_Init();  //OLED???
-	OLED_Clear();  //?∥
-	HAL_Delay(1000);
-	
-	//OLED_ShowNum(0,0,798666,8,16);
-	HAL_Delay(1000);
-	OLED_ShowString(0,0,my_data,7); //测试oled能否使用  目前使用I2C1
-	
-	
-	SetCarSpeed(0,40,0);
-	HAL_Delay(1995);
-	Motor_stop();
-	Car_turn(0);
-	//此处为模拟车行驶到物料盘前
-	
-	HAL_UART_Transmit_IT(&huart3,&qr,sizeof(qr));
+	HAL_UART_Transmit_IT(&huart3,&locate_stuff,sizeof(locate_stuff));
 	HAL_Delay(5);																//发送命令让openmv扫描二维码并接收二维码信息
 	HAL_UART_Receive_IT(&huart3, &rx_byte, 1);  // 开启中断接收
 	
-	//1250mm
-	//HAL_Delay(1000);
+	
+	
+	PCA9685_SetServoAngle(ROTATE,150); 
+	
+	/*
+	HAL_UART_Transmit_IT(&huart3,&qr,sizeof(qr));
+	HAL_Delay(5);																//发送命令让openmv扫描二维码并接收二维码信息
+	HAL_UART_Receive_IT(&huart3, &rx_byte, 1);  // 开启中断接收
+	*/
+
 //	while(memcmp(my_data,camChar,7)!=0);
 	//if(memcmp(my_data,camChar,7)==0)
 	//Tray_test();
@@ -283,35 +266,15 @@ int main(void)
 
 
 while(center_x == 0);
-for(a=0;a<3;a++)
-{
-	if(center_x!=0)
-{
-		if(150<=center_x&&center_x<=170&&100<=center_y&&center_y<=130)
-		{break;}
-		else if(130<=center_x&&center_x<=190&&90<=center_y&&center_y<=150)
-		{
-			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
-			HAL_Delay(245);
-			Motor_stop();
-			HAL_Delay(500);
-		}
-		else if(115<=center_x&&center_x<=205&&75<=center_y&&center_y<=165)
-	{
-		SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
-		HAL_Delay(295);
-		Motor_stop();
-		HAL_Delay(500);
-	}
-		else
-	{
-	SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
-	HAL_Delay(385);
-	Motor_stop();
-	HAL_Delay(500);
-	}
-}
-}
+Locate_1();
+
+
+
+HAL_Delay(50);
+HAL_UART_Transmit_IT(&huart3,&qr,sizeof(qr));
+HAL_Delay(2);
+zhuaqu();
+	
 //Locate_1();
 
 
@@ -502,6 +465,33 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
         // 接收数据并放入缓冲区
         HAL_UART_Receive_IT(&huart3, &rx_byte, 1);  // 再次启动中断接收
+        if (rx_byte == '\n') {        // 检测到结束符
+            rx_buffer[buffer_index] = '\0';  // 添加字符串结束符
+            buffer_index = 0;        // 重置缓冲区索引
+
+            // 解析接收到的数据
+						
+            char *token = strtok(rx_buffer, ",");  // 按逗号分隔
+            if (token != NULL) {
+                center_x = atoi(token);           // 更新中心 x 坐标
+                token = strtok(NULL, ",");
+                if (token != NULL) {
+                    center_y = atoi(token);       // 更新中心 y 坐标
+                }
+            }
+        } else {
+            // 防止缓冲区溢出
+            if (buffer_index < BUFFER_SIZE - 1) {
+                rx_buffer[buffer_index++] = rx_byte;
+            }
+        }
+    }
+		
+		 if (huart->Instance == UART5) {  // 确保是 USART3 的中断
+        static uint8_t rx_byte;       // 单字节接收变量
+
+        // 接收数据并放入缓冲区
+        HAL_UART_Receive_IT(&huart5, &rx_byte, 1);  // 再次启动中断接收
         if (rx_byte == '\n') {        // 检测到结束符
             rx_buffer[buffer_index] = '\0';  // 添加字符串结束符
             buffer_index = 0;        // 重置缓冲区索引

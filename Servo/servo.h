@@ -30,4 +30,5 @@
 
 void Gnd_to_Tray(void);
 void Tray_test(void);
+void zhuaqu(void);
 #endif
