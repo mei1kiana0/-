@@ -15,7 +15,7 @@
 #define ROTATE 4		//机械臂旋转
 #define UPPER 8			//夹爪上下位置
 #define TRAY 12 		//物料盘旋转
-
+#define Chaos 15    //总固定
 /*#define HAND_X 0
 #define HAND_Y 1
 #define HAND_Z 2*/
@@ -31,4 +31,5 @@
 void Gnd_to_Tray(void);
 void Tray_test(void);
 void zhuaqu(void);
+void fangzhi(void);
 #endif

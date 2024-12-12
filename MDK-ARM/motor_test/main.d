@@ -36,6 +36,7 @@ motor_test\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 motor_test\main.o: ../Core/Inc/i2c.h
 motor_test\main.o: ../Core/Inc/usart.h
 motor_test\main.o: ../Core/Inc/gpio.h
+motor_test\main.o: E:\keil5\ARM\ARMCC\Bin\..\include\ctype.h
 motor_test\main.o: ../Tools/tools.h
 motor_test\main.o: E:\keil5\ARM\ARMCC\Bin\..\include\math.h
 motor_test\main.o: E:\keil5\ARM\ARMCC\Bin\..\include\stdbool.h

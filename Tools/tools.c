@@ -27,7 +27,7 @@ void Motor_SetSpeed(uint8_t address, uint8_t direction, uint16_t speed, uint8_t 
 		command[6] = 0x01;	//使用同步
 	 //  检验字节
 	  command[7] = 0x6B;
-	HAL_UART_Transmit_IT(&huart1,command,sizeof(command));
+	HAL_UART_Transmit_IT(&huart3,command,sizeof(command));
 	HAL_Delay(2);
 	
 	/*命令解析*/
@@ -66,7 +66,7 @@ void SetCarSpeed(float vx, float vy, float vSpin)
 	HAL_Delay(2);
 	Motor_SetSpeed(RR_MOTOR_ID,flag[3],V[3],0x00);
 	HAL_Delay(2);
-	HAL_UART_Transmit_IT(&huart1,tdata,sizeof(tdata));
+	HAL_UART_Transmit_IT(&huart3,tdata,sizeof(tdata));
 	HAL_Delay(2);
 	
 	
@@ -100,7 +100,7 @@ void Motor_SetPosition(uint8_t address,uint8_t direction,uint16_t speed,uint32_t
 	command[11] = 0x00;
 	//校验字节
 	command [12] = 0x6B;
-	HAL_UART_Transmit_IT(&huart1,command,sizeof(command));
+	HAL_UART_Transmit_IT(&huart3,command,sizeof(command));
 	HAL_Delay(2);
 	
 	/*命令解释*/
