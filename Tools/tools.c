@@ -54,18 +54,18 @@ void SetCarSpeed(float vx, float vy, float vSpin)
 		flag[2]=0;
 	if(vRR<1e-3f)
 		flag[3]=0;
-	V[0] = abs((int)(vLF/standard_speed*60-2));
+	V[0] = abs((int)(vLF/standard_speed*60));
 	V[1] = abs((int)(vLR/standard_speed*60));
-	V[2] = abs((int)(vRF/standard_speed*60-2));
+	V[2] = abs((int)(vRF/standard_speed*60));
 	V[3] = abs((int)(vRR/standard_speed*60));
 	Motor_SetSpeed(LF_MOTOR_ID,flag[0],V[0],0x00);
-	HAL_Delay(2);
+	HAL_Delay(1);
 	Motor_SetSpeed(LR_MOTOR_ID,flag[1],V[1],0x00);
-	HAL_Delay(2);
+	HAL_Delay(1);
 	Motor_SetSpeed(RF_MOTOR_ID,flag[2],V[2],0x00);
-	HAL_Delay(2);
+	HAL_Delay(1);
 	Motor_SetSpeed(RR_MOTOR_ID,flag[3],V[3],0x00);
-	HAL_Delay(2);
+	HAL_Delay(1);
 	HAL_UART_Transmit_IT(&huart3,tdata,sizeof(tdata));
 	HAL_Delay(2);
 	
@@ -129,13 +129,13 @@ void Car_move(float vx, float vy, float vSpin,uint32_t pluse)
 	V[2] = abs((int)(vRF/standard_speed*60)+1);
 	V[3] = abs((int)(vRR/standard_speed*60)+1);
 	Motor_SetPosition(LF_MOTOR_ID,flag[0],V[0],pluse);
-	HAL_Delay(2);
+	HAL_Delay(1);
 	Motor_SetPosition(LR_MOTOR_ID,flag[1],V[1],pluse);
-	HAL_Delay(2);
+	HAL_Delay(1);
 	Motor_SetPosition(RF_MOTOR_ID,flag[2],V[2],pluse);
-	HAL_Delay(2);
+	HAL_Delay(1);
 	Motor_SetPosition(LR_MOTOR_ID,flag[3],V[3],pluse);
-	HAL_Delay(2);
+	HAL_Delay(1);
 }
 
 void Car_turn_right(void)

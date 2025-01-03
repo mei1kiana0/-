@@ -65,15 +65,21 @@ uint8_t data11[5] = {0x02,0xFE,0x98,0x01,0x6B}; //立即停止
 uint8_t data12[5] = {0x03,0xFE,0x98,0x01,0x6B}; //立即停止
 uint8_t data13[5] = {0x04,0xFE,0x98,0x01,0x6B}; //立即停止	同步控制
 //速度控制 电机立即停止
-uint8_t data14[] = {0x01,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
-uint8_t data15[] = {0x02,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
-uint8_t data16[] = {0x03,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
-uint8_t data17[] = {0x04,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};	//右转
+uint8_t data14[] = {0x01,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x00,0x6B};
+uint8_t data15[] = {0x02,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x00,0x6B};
+uint8_t data16[] = {0x03,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x00,0x6B};	//加入pca9685后，貌似无法做到3200脉冲/1r转一圈0x0c,0x80对应3200，现改为3700 0x0e,0x74
+uint8_t data17[] = {0x04,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x00,0x6B};	//右转
 
-uint8_t data18[] = {0x01,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
-uint8_t data19[] = {0x02,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
-uint8_t data20[] = {0x03,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};
-uint8_t data21[] = {0x04,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x01,0x6B};	//左转
+uint8_t data18[] = {0x01,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x00,0x6B};
+uint8_t data19[] = {0x02,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x00,0x6B};
+uint8_t data20[] = {0x03,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x00,0x6B};
+uint8_t data21[] = {0x04,0xFD,0x01,0x00,0x6B,0x00,0x00,0x00,0x0c,0x80,0x00,0x00,0x6B};	//左转
+
+uint8_t data22[] = {0x01,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x19,0x00,0x00,0x00,0x6B};
+uint8_t data23[] = {0x02,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x19,0x00,0x00,0x00,0x6B};
+uint8_t data24[] = {0x03,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x19,0x00,0x00,0x00,0x6B};	//加入pca9685后，貌似无法做到3200脉冲/1r转一圈0x0c,0x80对应3200，6400 0x19,0x00
+uint8_t data25[] = {0x04,0xFD,0x00,0x00,0x6B,0x00,0x00,0x00,0x19,0x00,0x00,0x00,0x6B};	//右转
+
 const double pi =3.1416;
 const double  rx =23;	//两个麦轮横向距离
 const double  ry =17; //两个麦轮纵向距离
@@ -90,13 +96,10 @@ extern uint8_t camChar[7];
 extern uint8_t tdata[4];	//多机同步
 //OpenMV接收指令
 
-uint8_t qr='Q';					//识别二维码
-
-uint8_t locate='L';				//地面定位
-
-uint8_t locateArm='A';			//机械臂定位
+uint8_t qr='Q';					//识别二维码 或 一次颜色识别
+uint8_t locate='R';				//地面定位
 uint8_t locate_stuff='S';		//码垛前车体定位
-
+uint8_t zr='Z';         //二次颜色识别
 int a = 0; //用于循环控制定位
 uint8_t my_data[8] = "123+321\0";
 uint8_t color_data1[7] = "123+321";
@@ -111,7 +114,8 @@ uint8_t buffer_index = 0;     // 当前缓冲区索引
 uint8_t data_ready = 0;       // 数据接收完成标志
 volatile int center_x = 0;  // 全局变量表示中心 x 坐标
 volatile int center_y = 0;  // 全局变量表示中心 y 坐标
-
+volatile int last_center_x = -20;  // 全局变量表示中心 x 坐标
+volatile int last_center_y = -20;  // 全局变量表示中心 y 坐标
 
 /**/
 
@@ -173,167 +177,728 @@ int main(void)
   MX_UART5_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-	//PCA9685_Init();		
-	HAL_Delay(200);
-	//PCA9685_SetServoAngle(Chaos,35); //设定35为居中
 	
-	//正在测试正方向是哪个数值
 	
-	//必须上电接上pca9685模块，否则会导致后续代码无法运行
-	/*
-	SetCarSpeed(-20,0,0);
-	HAL_Delay(600);
-	Motor_stop();
+	PCA9685_Init();		
 	HAL_Delay(100);
-	SetCarSpeed(0,40,0);
-	HAL_Delay(3400);
-	Motor_stop();
-	HAL_Delay(500);
-	Car_turn(0);
+	PCA9685_SetServoAngle(Chaos,40); //设定40为居中
+	HAL_Delay(100);
+	//PCA9685_SetServoAngle(UPPER,50); //假设此时夹爪与物料盘在同一高度
+	HAL_Delay(100);
+	PCA9685_SetServoAngle(JAW,40); //夹爪释放物料
 	
-	*/
-	
-	
-	//ScanQR();
+	HAL_Delay(100);
 	numbers[0]=1;
 	numbers[1]=2;
 	numbers[2]=3;
 	//接收到了颜色顺序的数据
-	HAL_Delay(1000);
-	PCA9685_SetServoAngle(UPPER,55); //假设此时夹爪与物料在同一高度
-	HAL_Delay(500);
-	HAL_UART_Transmit_IT(&huart1,&locate_stuff,sizeof(locate_stuff));
-	HAL_Delay(5);																//发送命令让openmv扫描二维码并接收二维码信息
-	HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 开启中断接收
 	
 	
 	
 	
-	/*
-	HAL_UART_Transmit_IT(&huart1,&qr,sizeof(qr));
-	HAL_Delay(5);																//发送命令让openmv扫描二维码并接收二维码信息
-	HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 开启中断接收
-	*/
-
-//	while(memcmp(my_data,camChar,7)!=0);
-// if(memcmp(my_data,camChar,7)==0)
-	//Tray_test();
-	//SetCarSpeed(0,42,0);
-	//HAL_Delay(3500);//设定995ms为1s
-	//Motor_stop();
-		
-
-
-
-while(center_x == 0);
-
-for(a=0;a<3;a++)
-{
-	if(center_x<400){
-		if(center_x!=0)
-	{
-			if(150<=center_x&&center_x<=170&&110<=center_y&&center_y<=130)
-			{break;}
-			else if(130<=center_x&&center_x<=190&&90<=center_y&&center_y<=150)
-		{
-			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
-			HAL_Delay(260);
-			Motor_stop();
-			HAL_Delay(500);
-		}
-			else if(115<=center_x&&center_x<=205&&75<=center_y&&center_y<=165)
-		{
-			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
-			HAL_Delay(380);
-			Motor_stop();
-			HAL_Delay(500);
-		}
-			else
-		{
-			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
-			HAL_Delay(420);
-			Motor_stop();
-			HAL_Delay(500);
-		}
-	}
-}
-}
-a=0;
-
-
-
-
-
-HAL_Delay(50);
-HAL_UART_Transmit_IT(&huart1,&qr,sizeof(qr));
-HAL_Delay(500);
-
-zhuaqu();
-
-
-
+	
+	
+	
+	
+	
+//这段测试为争对物料盘的定位
+//这段测试为针对物料盘的定位
 #if nTest
-
-//可能的方向
-
-//先经过一系列位移，到达暂存区。
-	HAL_UART_Transmit_IT(&huart1,&locate_stuff,sizeof(locate_stuff));
-	HAL_Delay(5);																//发送命令让openmv扫描二维码并接收二维码信息
+HAL_Delay(500);
+HAL_UART_Transmit_IT(&huart1,&locate,sizeof(locate));
+	HAL_Delay(500);																//发送命令让openmv识别圆环
 	HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 开启中断接收
+	HAL_Delay(5);
+	PCA9685_SetServoAngle(UPPER,-20); //适当降低高度以便更好识别
+	HAL_Delay(100);
 	while(center_x == 0);
-
-for(a=0;a<3;a++)
+	HAL_Delay(1000);
+	
+	
+for(a=0;a<5;a++)
 {
-	if(center_x<400){
+	
 		if(center_x!=0)
 	{
-			if(145<=center_x&&center_x<=175&&105<=center_y&&center_y<=135)
-			{break;}
-			else if(130<=center_x&&center_x<=190&&90<=center_y&&center_y<=150)
+			if(152<=center_x&&center_x<=168&&114<=center_y&&center_y<=126)
 		{
-			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
-			HAL_Delay(250);
 			Motor_stop();
-			HAL_Delay(500);
+			break;
 		}
-			else if(115<=center_x&&center_x<=205&&75<=center_y&&center_y<=165)
+			else if(146<=center_x&&center_x<=172&&110<=center_y&&center_y<=130)
+		{
+			SetCarSpeed((160-center_x)/7.0,(center_y-120)/7.0,0);
+			HAL_Delay(40);
+			HAL_Delay(40);
+			Motor_stop();
+			HAL_Delay(300);
+		}	
+			else if(140<=center_x&&center_x<=180&&105<=center_y&&center_y<=135)
 		{
 			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
-			HAL_Delay(295);
+			HAL_Delay(70);
+			HAL_Delay(70);
 			Motor_stop();
-			HAL_Delay(500);
+			HAL_Delay(300);
+		}
+			else if(130<=center_x&&center_x<=190&&95<=center_y&&center_y<=155)
+		{
+			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
+			HAL_Delay(130);
+			HAL_Delay(130);
+			Motor_stop();
+			HAL_Delay(300);
 		}
 			else
 		{
 			SetCarSpeed((160-center_x)/8.0,(center_y-120)/7.0,0);
-			HAL_Delay(355);
+			HAL_Delay(290);
 			Motor_stop();
-			HAL_Delay(500);
+			HAL_Delay(300);
 		}
 	}
 }
+a=0;
+HAL_Delay(500);
+PCA9685_SetServoAngle(TRAY,-34);
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(1000);
+while(1);
+#endif
+//这段测试为定位好物料盘后，识别颜色后的抓取
+
+
+	PCA9685_SetServoAngle(TRAY,-34);
+	HAL_Delay(100);
+	/*
+  SetCarSpeed(-20,0,0);
+	HAL_Delay(1100);
+	Motor_stop();
+	HAL_Delay(800);
+	
+	SetCarSpeed(0,30,0);
+	HAL_Delay(1900);
+	Motor_stop();				//这里是到了二维码前
+	HAL_Delay(50);
+	*/
+	HAL_UART_Receive_IT(&huart5,color_receive,sizeof(color_receive));
+	while(1);
+	
+	HAL_Delay(800);
+	SetCarSpeed(0,30,0);
+	HAL_Delay(3000);		//记得改回3000
+	Motor_stop();
+	HAL_Delay(500);
+	Car_turn(0);
+	HAL_Delay(1200);		//记得改回1200
+	
+	
+	
+
+
+
+//HAL_Delay(500);
+
+
+HAL_UART_Transmit_IT(&huart1,&qr,sizeof(qr));
+HAL_Delay(5);
+HAL_Delay(50);																//发送命令让openmv扫描二维码并接收二维码信息
+HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 开启中断接收
+HAL_Delay(50);
+zhuaqu_1();
+HAL_Delay(1500);
+
+//以上为抓取物料
+
+
+
+	
+	SetCarSpeed(40,0,0);
+	HAL_Delay(1050);
+	Motor_stop();
+	//以上为运行到转弯处
+	HAL_Delay(1000);
+	Car_turn(2);
+	HAL_Delay(2000);
+	//以上为转弯
+	SetCarSpeed(0,0,-1);
+	HAL_Delay(20);
+	Motor_stop();
+	//硬调方向
+	HAL_Delay(1000);
+	SetCarSpeed(0,30,0);
+	HAL_Delay(2830);
+	Motor_stop();
+	HAL_Delay(1500);
+	SetCarSpeed(0,0,-1);
+	HAL_Delay(20);
+	Motor_stop();
+	HAL_Delay(1500);
+	SetCarSpeed(0,30,0);
+	HAL_Delay(2830);
+	Motor_stop();
+	HAL_Delay(1500);
+	
+	
+	SetCarSpeed(15,0,0);
+	HAL_Delay(955);
+	Motor_stop();
+	
+	HAL_Delay(1000);
+	SetCarSpeed(0,0,-1);
+	HAL_Delay(20);
+	Motor_stop();
+	HAL_Delay(200);
+	
+	//放置处进行一次定位
+	
+	center_x=0;
+	center_y=0;
+//先经过一系列位移，到达暂存区。
+
+HAL_Delay(500);
+HAL_UART_Transmit_IT(&huart1,&locate,sizeof(locate));
+	HAL_Delay(500);																//发送命令让openmv识别圆环
+	HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 开启中断接收
+	HAL_Delay(5);
+	PCA9685_SetServoAngle(UPPER,-20); //适当降低高度以便更好识别
+	HAL_Delay(100);
+	while(center_x == 0);
+	HAL_Delay(1000);
+	
+	
+for(a=0;a<5;a++)
+{
+	
+		if(center_x!=0)
+	{
+			if(152<=center_x&&center_x<=168&&114<=center_y&&center_y<=126)
+		{
+			Motor_stop();
+			break;
+		}
+			else if(146<=center_x&&center_x<=172&&110<=center_y&&center_y<=130)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(40);
+			HAL_Delay(40);
+			Motor_stop();
+			HAL_Delay(300);
+		}	
+			else if(140<=center_x&&center_x<=180&&105<=center_y&&center_y<=135)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(70);
+			HAL_Delay(70);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+			else if(130<=center_x&&center_x<=190&&95<=center_y&&center_y<=155)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(140);
+			HAL_Delay(140);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+			else
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(300);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+	}
 }
 a=0;
 
-//进行类似的定位操作，但精度要求更高
-if(numbers[0]==1&&numbers[1]==2&&numbers[2]==3)
+	
+	HAL_Delay(1000);
+	PCA9685_SetServoAngle(TRAY,-34);
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(1000);
+
+	PCA9685_SetServoAngle(TRAY,36);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(1000);
+	PCA9685_SetServoAngle(TRAY,110);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(1000);
+	
+	
+	
+	
+	//以上为放置
+	
+	PCA9685_SetServoAngle(TRAY,-34);
+	
+	HAL_Delay(200);
+	SetCarSpeed(30,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	Gnd_to_Tray(1);
+	HAL_Delay(100);
+	PCA9685_SetServoAngle(TRAY,36);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	Gnd_to_Tray(1);
+	HAL_Delay(100);
+	PCA9685_SetServoAngle(TRAY,110);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1025);
+	Motor_stop();
+	HAL_Delay(500);
+	Gnd_to_Tray(1);
+	HAL_Delay(500);
+	Car_turn(0);
+	HAL_Delay(1000);
+	SetCarSpeed(0,0,-1);
+	HAL_Delay(18);
+	Motor_stop();
+	
+	
+	/**/
+	
+	
+	
+	
+	//以上为抓取
+	
+	
+	HAL_Delay(1000);
+	SetCarSpeed(0,30,0);
+	HAL_Delay(3040);
+	Motor_stop();
+	HAL_Delay(1000);
+	//前进
+	Car_turn(0);
+	HAL_Delay(1000);
+	HAL_Delay(1000);
+	SetCarSpeed(0,0,-1);
+	HAL_Delay(25);
+	Motor_stop();
+	HAL_Delay(500);
+	//硬调方向
+	SetCarSpeed(0,30,0);
+	HAL_Delay(3334);
+	Motor_stop();
+	//前进
+	HAL_Delay(1000);
+	Car_turn(1);
+	//左转
+	HAL_Delay(1000);
+	SetCarSpeed(0,0,1);
+	HAL_Delay(18);
+	Motor_stop();
+	HAL_Delay(500);
+	
+	center_x=0;
+	center_y=0;
+//先经过一系列位移，到达暂存区。
+
+HAL_Delay(500);
+HAL_UART_Transmit_IT(&huart1,&locate,sizeof(locate));
+	HAL_Delay(500);																//发送命令让openmv识别圆环
+	HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 开启中断接收
+	HAL_Delay(5);
+	PCA9685_SetServoAngle(UPPER,-20); //适当降低高度以便更好识别
+	HAL_Delay(100);
+	while(center_x == 0);
+	HAL_Delay(1000);
+	
+	
+for(a=0;a<5;a++)
 {
-	//运动到指定位置
-	//转物料盘
-	fangzhi();
-	//运动到指定位置
-	//转物料盘
-	fangzhi();
-	//运动到指定位置
-	//转物料盘
+	
+		if(center_x!=0)
+	{
+			if(152<=center_x&&center_x<=168&&114<=center_y&&center_y<=126)
+		{
+			Motor_stop();
+			break;
+		}
+			else if(146<=center_x&&center_x<=172&&110<=center_y&&center_y<=130)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(40);
+			HAL_Delay(40);
+			Motor_stop();
+			HAL_Delay(300);
+		}	
+			else if(140<=center_x&&center_x<=180&&105<=center_y&&center_y<=135)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(70);
+			HAL_Delay(70);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+			else if(130<=center_x&&center_x<=190&&95<=center_y&&center_y<=155)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(140);
+			HAL_Delay(140);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+			else
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(300);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+	}
+}
+a=0;
+	
+	PCA9685_SetServoAngle(TRAY,-34);
+	HAL_Delay(200);
 	fangzhi();
 	
+	PCA9685_SetServoAngle(TRAY,36);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(2000);
+	PCA9685_SetServoAngle(TRAY,110);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(2000);
+	//以上为放置
+
+
+//以上为完成第一轮放置
+	Car_turn(0);
+	HAL_Delay(1000);
+	SetCarSpeed(0,30,0);
+	HAL_Delay(3387);
+	Motor_stop();
+	HAL_Delay(1000);
+	SetCarSpeed(30,0,0);
+	HAL_Delay(1400);
+	Motor_stop();
+	HAL_Delay(2500);
+	
+	////////
+	////////
+	//此处到达了载物台前
+	
+	
+HAL_UART_Transmit_IT(&huart1,&zr,sizeof(zr));
+HAL_Delay(50);																//发送命令让openmv扫描二维码并接收二维码信息
+HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 开启中断接收
+HAL_Delay(50);
+zhuaqu_1();
+HAL_Delay(1500);
+/////以上为第一轮抓取放置直到运行到载物台前
+
+
+SetCarSpeed(40,0,0);
+	HAL_Delay(1050);
+	Motor_stop();
+	//以上为运行到转弯处
+	HAL_Delay(1000);
+	Car_turn(2);
+	HAL_Delay(2000);
+	//以上为转弯
+	SetCarSpeed(0,0,-1);
+	HAL_Delay(20);
+	Motor_stop();
+	//硬调方向
+	HAL_Delay(1000);
+	SetCarSpeed(0,30,0);
+	HAL_Delay(2828);
+	Motor_stop();
+	HAL_Delay(1500);
+	SetCarSpeed(0,0,-1);
+	HAL_Delay(20);
+	Motor_stop();
+	HAL_Delay(1500);
+	SetCarSpeed(0,30,0);
+	HAL_Delay(2828);
+	Motor_stop();
+	HAL_Delay(1500);
+	
+	
+	SetCarSpeed(15,0,0);
+	HAL_Delay(955);
+	Motor_stop();
+	
+	HAL_Delay(1000);
+	SetCarSpeed(0,0,-1);
+	HAL_Delay(20);
+	Motor_stop();
+	HAL_Delay(200);
+	
+	//放置处进行一次定位
+	
+	center_x=0;
+	center_y=0;
+//先经过一系列位移，到达暂存区。
+
+HAL_Delay(500);
+HAL_UART_Transmit_IT(&huart1,&locate,sizeof(locate));
+	HAL_Delay(500);																//发送命令让openmv识别圆环
+	HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 开启中断接收
+	HAL_Delay(5);
+	PCA9685_SetServoAngle(UPPER,-20); //适当降低高度以便更好识别
+	HAL_Delay(100);
+	while(center_x == 0);
+	HAL_Delay(1000);
+	
+	
+for(a=0;a<5;a++)
+{
+	
+		if(center_x!=0)
+	{
+			if(152<=center_x&&center_x<=168&&114<=center_y&&center_y<=126)
+		{
+			Motor_stop();
+			break;
+		}
+			else if(146<=center_x&&center_x<=172&&110<=center_y&&center_y<=130)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(40);
+			HAL_Delay(40);
+			Motor_stop();
+			HAL_Delay(300);
+		}	
+			else if(140<=center_x&&center_x<=180&&105<=center_y&&center_y<=135)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(70);
+			HAL_Delay(70);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+			else if(130<=center_x&&center_x<=190&&95<=center_y&&center_y<=155)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(140);
+			HAL_Delay(140);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+			else
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(300);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+	}
 }
-//进行3*2*1=6次判断语句，完成放置
-//再进行相反的运动，完成抓取
-#endif
+a=0;
 
+	
+	HAL_Delay(1000);
+	PCA9685_SetServoAngle(TRAY,-34);
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(1000);
 
+	PCA9685_SetServoAngle(TRAY,36);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(1000);
+	PCA9685_SetServoAngle(TRAY,110);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(1000);
+	
+	
+	
+	
+	//以上为放置
+	
+	PCA9685_SetServoAngle(TRAY,-34);
+	
+	HAL_Delay(200);
+	SetCarSpeed(30,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	Gnd_to_Tray(1);
+	HAL_Delay(100);
+	PCA9685_SetServoAngle(TRAY,36);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	Gnd_to_Tray(1);
+	HAL_Delay(100);
+	PCA9685_SetServoAngle(TRAY,110);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1025);
+	Motor_stop();
+	HAL_Delay(500);
+	Gnd_to_Tray(1);
+	HAL_Delay(500);
+	Car_turn(0);
+	HAL_Delay(1000);
+	SetCarSpeed(0,0,-1);
+	HAL_Delay(18);
+	Motor_stop();
+	
+	
+	/**/
+	
+	
+	
+	
+	//以上为抓取
+	
+	
+	HAL_Delay(1000);
+	SetCarSpeed(0,30,0);
+	HAL_Delay(3040);
+	Motor_stop();
+	HAL_Delay(1000);
+	//前进
+	Car_turn(0);
+	HAL_Delay(1000);
+	HAL_Delay(1000);
+	SetCarSpeed(0,0,-1);
+	HAL_Delay(25);
+	Motor_stop();
+	HAL_Delay(500);
+	//硬调方向
+	SetCarSpeed(0,40,0);
+	HAL_Delay(2500);
+	Motor_stop();
+	//前进
+	HAL_Delay(1000);
+	Car_turn(1);
+	//左转
+	HAL_Delay(1000);
+	SetCarSpeed(0,0,1);
+	HAL_Delay(18);
+	Motor_stop();
+	HAL_Delay(500);
+	
+	center_x=0;
+	center_y=0;
+//先经过一系列位移，到达暂存区。
+
+HAL_Delay(500);
+HAL_UART_Transmit_IT(&huart1,&locate,sizeof(locate));
+	HAL_Delay(500);																//发送命令让openmv识别圆环
+	HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 开启中断接收
+	HAL_Delay(5);
+	PCA9685_SetServoAngle(UPPER,-20); //适当降低高度以便更好识别
+	HAL_Delay(100);
+	while(center_x == 0);
+	HAL_Delay(1000);
+	
+	
+for(a=0;a<5;a++)
+{
+	
+		if(center_x!=0)
+	{
+			if(152<=center_x&&center_x<=168&&114<=center_y&&center_y<=126)
+		{
+			Motor_stop();
+			break;
+		}
+			else if(146<=center_x&&center_x<=172&&110<=center_y&&center_y<=130)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(40);
+			HAL_Delay(40);
+			Motor_stop();
+			HAL_Delay(300);
+		}	
+			else if(140<=center_x&&center_x<=180&&105<=center_y&&center_y<=135)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(70);
+			HAL_Delay(70);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+			else if(130<=center_x&&center_x<=190&&95<=center_y&&center_y<=155)
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(140);
+			HAL_Delay(140);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+			else
+		{
+			SetCarSpeed((160-center_x)/7.0+1,(center_y-120)/7.0,0);
+			HAL_Delay(300);
+			Motor_stop();
+			HAL_Delay(300);
+		}
+	}
+}
+a=0;
+	
+	PCA9685_SetServoAngle(TRAY,-34);
+	HAL_Delay(200);
+	fangzhi();
+	
+	PCA9685_SetServoAngle(TRAY,36);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(2000);
+	PCA9685_SetServoAngle(TRAY,110);
+	HAL_Delay(200);
+	SetCarSpeed(-15,0,0);
+	HAL_Delay(1020);
+	Motor_stop();
+	HAL_Delay(500);
+	fangzhi();
+	HAL_Delay(2000);
+	//以上为放置
+
+	
+	
+	
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -428,10 +993,11 @@ void Car_turn(int i)
 	HAL_Delay(1);
 	HAL_UART_Transmit_IT(&huart3,data17,sizeof(data17));
 	HAL_Delay(1);
-	HAL_UART_Transmit_IT(&huart3,tdata,sizeof(tdata));
-	HAL_Delay(2);}
+	//HAL_UART_Transmit_IT(&huart3,tdata,sizeof(tdata));
+	//HAL_Delay(2);
+	}
 	
-	else
+	else if(i==1)
 	{
 		
 	HAL_UART_Transmit_IT(&huart3,data18,sizeof(data18));
@@ -442,9 +1008,20 @@ void Car_turn(int i)
 	HAL_Delay(1);
 	HAL_UART_Transmit_IT(&huart3,data21,sizeof(data21));
 	HAL_Delay(1);
-	HAL_UART_Transmit_IT(&huart3,tdata,sizeof(tdata));
-	HAL_Delay(2);
+	//HAL_UART_Transmit_IT(&huart3,tdata,sizeof(tdata));
+	//HAL_Delay(2);
 	
+	}
+	else if(i==2)
+	{
+	HAL_UART_Transmit_IT(&huart3,data22,sizeof(data22));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart3,data23,sizeof(data23));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart3,data24,sizeof(data24));
+	HAL_Delay(1);
+	HAL_UART_Transmit_IT(&huart3,data25,sizeof(data25));
+	HAL_Delay(1);
 	}
 
 	//SetCarSpeed(0,0,31.416/40.0); 也许能用，预期效果原地右转
@@ -506,7 +1083,8 @@ void ScanQR(void)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART1) {  // 确保是 USART3 的中断
        // static uint8_t rx_byte;       // 单字节接收变量
-
+				last_center_x=center_x;
+				last_center_y=center_y;
         // 接收数据并放入缓冲区
         HAL_UART_Receive_IT(&huart1, &rx_byte, 1);  // 再次启动中断接收
         if (rx_byte == '\n') {        // 检测到结束符
@@ -523,6 +1101,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
                     center_y = atoi(token);       // 更新中心 y 坐标
                 }
             }
+						
         } else {
             // 防止缓冲区溢出
             if (buffer_index < BUFFER_SIZE - 1) {

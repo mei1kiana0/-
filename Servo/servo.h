@@ -28,8 +28,9 @@
 #define MID 2
 #define RIGHT 3
 
-void Gnd_to_Tray(void);
+void Gnd_to_Tray(int i);
 void Tray_test(void);
-void zhuaqu(void);
+void zhuaqu_1(void);
+void zhuaqu_2(void);
 void fangzhi(void);
 #endif
